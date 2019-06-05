@@ -185,6 +185,7 @@ let encoder = JSONEncoder()
 encoder.outputFormatting = .prettyPrinted
 var encoded: Data? = nil
 
+print("\n====================\n SHUTTLES\n====================")
 do {
     encoded = try encoder.encode(nasaFleet)
 } catch {
