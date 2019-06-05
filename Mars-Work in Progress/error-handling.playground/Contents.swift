@@ -150,6 +150,39 @@ for body in celestialBodies {
 // --------------------------------------------------------------
 // ⬇ This code is .map() and compactMap():
 // --------------------------------------------------------------
+let celestialBodiesThatAreSpherical = celestialBodies.filter({ $0 is Spherical }) // gets CelestialBodies that are Spherical
+
+print("\n====================\n SHUTTLES (DECODED)\n====================")
+for body in celestialBodiesThatAreSpherical {
+    if let sphericalBody = body as? Spherical { // but then you have to do a cast
+        print("Volume of spherical body of radius \(sphericalBody.diameter) is \(sphericalBody.volume)")
+    }
+}
+
+let sphericalBodies = celestialBodies.compactMap({ $0 as? Spherical }) // gets CelestialBodies that are Spherical AS SPHERICAL TYPE
+
+for sphericalBody in sphericalBodies { // saves some iterations and is already the right type
+    print("Volume of spherical body of radius \(sphericalBody.diameter) is \(sphericalBody.volume)")
+}
+
+let namedMixedBodies = celestialBodies.map({ body in (name: body.name, volume: (body as? Spherical)?.volume) })
+
+for body in namedMixedBodies { // saves some iterations and is already the right type
+    if let volume = body.volume {
+        print("Volume of \(body.name) is \(volume)")
+    } else {
+        print("Volume of \(body.name) is inestimable with given information")
+    }
+}
+
+extension Collection {
+    func list() -> String {
+        //return self.map({ "- \($0)"}).joined(separator: "\n") // <-- works
+        //return self.map({ element in  "- \($element)"}).joined(separator: "\n") // <-- makes more sense
+        //return self.reduce("", { $0 + "- \($1)\n" }) // <-- is better
+        return self.reduce("", { (string, element) in string + "- \(element)\n" }) // <-- makes more sense AND is better
+    }
+}
 
 // --------------------------------------------------------------
 // ⬇ This code is Throwing and handling errors:
@@ -173,11 +206,11 @@ struct Fleet: Codable, CustomStringConvertible {
     var shuttles: [SpaceShuttle]
     
     var description: String {
-        return "Fleet of \(shuttles.count) Space Shuttles:\n" + shuttles.map({ $0.description }).joined(separator: "\n")
+        return "Fleet of \(shuttles.count) Space Shuttles:\n" + shuttles.list()
     }
 }
 
-let fleetString = """
+let fleet = """
     {
         "shuttles" : [
             {
@@ -210,31 +243,17 @@ let fleetString = """
 
 let decoder = JSONDecoder()
 
+let nasaFleet = try! decoder.decode(Fleet.self, from: fleet.data(using: .utf8)!)
 print("\n====================\n SHUTTLES (DECODED)\n====================")
-guard let fleetData = fleetString.data(using: .utf8) else {
-    fatalError("ERROR: something went wrong while encoding UTF-8 that is clearly valid! 🤔")
-}
-
-guard let nasaFleet = try? decoder.decode(Fleet.self, from: fleetData) else {
-    fatalError("ERROR: something went wrong while decoding JSON that is clearly valid! 🤔")
-}
-
 print(nasaFleet)
 
 
 let encoder = JSONEncoder()
 encoder.outputFormatting = .prettyPrinted
 
+let encoded = try! encoder.encode(nasaFleet)
 print("\n====================\n SHUTTLES (ENCODED)\n====================")
-guard let encoded = try? encoder.encode(nasaFleet) else {
-    fatalError("ERROR: something went wrong while encoding JSON that is clearly valid! 🤔")
-}
-
-guard let string = String(data: encoded, encoding: .utf8) else {
-    fatalError("ERROR: something went wrong while encoding UTF-8 that is clearly valid! 🤔")
-}
-
-print(string)
+print(String(data: encoded, encoding: .utf8)!)
 
 // non-automatic synthesis of codable (DIY adherence)
 
