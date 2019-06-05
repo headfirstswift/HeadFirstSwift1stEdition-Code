@@ -160,45 +160,83 @@ for body in celestialBodies {
 // --------------------------------------------------------------
 
 // automatic synthesis of codable
-
-struct SpaceShuttle: Codable {
+struct SpaceShuttle: Codable, CustomStringConvertible {
     let name: String
     let designation: String
+    
+    var description: String {
+        return "🚀 \(name) (\(designation))"
+    }
 }
 
-struct Fleet: Codable {
+struct Fleet: Codable, CustomStringConvertible {
     var shuttles: [SpaceShuttle]
+    
+    var description: String {
+        return "Fleet of \(shuttles.count) Space Shuttles:\n" + shuttles.map({ $0.description }).joined(separator: "\n")
+    }
 }
 
-let shuttles = [
-    SpaceShuttle(name: "Challenger", designation: "OV-099"),
-    SpaceShuttle(name: "Enterprise", designation: "OV-101"),
-    SpaceShuttle(name: "Colombia", designation: "OV-102"),
-    SpaceShuttle(name: "Discovery", designation: "OV-103"),
-    SpaceShuttle(name: "Atlantis", designation: "OV-104"),
-    SpaceShuttle(name: "Endeavour", designation: "OV-105")
-]
+let fleetString = """
+    {
+        "shuttles" : [
+            {
+                "name" : "Challenger",
+                "designation" : "OV-099"
+            },
+            {
+                "name" : "Enterprise",
+                "designation" : "OV-101"
+            },
+            {
+                "name" : "Colombia",
+                "designation" : "OV-102"
+            },
+            {
+                "name" : "Discovery",
+                "designation" : "OV-103"
+            },
+            {
+                "name" : "Atlantis",
+                "designation" : "OV-104"
+            },
+            {
+                "name" : "Endeavour",
+                "designation" : "OV-105"
+            }
+        ]
+    }
+"""
 
-let nasaFleet = Fleet(shuttles: shuttles)
+let decoder = JSONDecoder()
+
+print("\n====================\n SHUTTLES (DECODED)\n====================")
+guard let fleetData = fleetString.data(using: .utf8) else {
+    fatalError("ERROR: something went wrong while encoding UTF-8 that is clearly valid! 🤔")
+}
+
+guard let nasaFleet = try? decoder.decode(Fleet.self, from: fleetData) else {
+    fatalError("ERROR: something went wrong while decoding JSON that is clearly valid! 🤔")
+}
+
+print(nasaFleet)
+
 
 let encoder = JSONEncoder()
 encoder.outputFormatting = .prettyPrinted
-var encoded: Data? = nil
 
-print("\n====================\n SHUTTLES\n====================")
-do {
-    encoded = try encoder.encode(nasaFleet)
-} catch {
-    print("Error encoding JSON: \(error)")
+print("\n====================\n SHUTTLES (ENCODED)\n====================")
+guard let encoded = try? encoder.encode(nasaFleet) else {
+    fatalError("ERROR: something went wrong while encoding JSON that is clearly valid! 🤔")
 }
 
-if let encodedJSON = encoded, let string = String(data: encodedJSON, encoding: .utf8) {
-    print(string)
-} else {
-    print("Improperly encoded JSON object, somehow!")
+guard let string = String(data: encoded, encoding: .utf8) else {
+    fatalError("ERROR: something went wrong while encoding UTF-8 that is clearly valid! 🤔")
 }
 
-// non-automica synthesis of codable (DIY adherence)
+print(string)
+
+// non-automatic synthesis of codable (DIY adherence)
 
 ///==============================================================
 /// PICK SOME ACTIVITIES
