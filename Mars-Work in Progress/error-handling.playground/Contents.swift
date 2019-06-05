@@ -158,38 +158,46 @@ for body in celestialBodies {
 // --------------------------------------------------------------
 // ⬇ This code is Encoding and decoding:
 // --------------------------------------------------------------
-protocol Spacecraft: Codable {
-    var name: String { get }
-    var designation: String { get }
-}
 
-struct SpaceShuttle: Spacecraft {
-    let name: String
-    let designation: String
-}
+// automatic synthesis of codable
 
-struct Rocket: Spacecraft {
+struct SpaceShuttle: Codable {
     let name: String
     let designation: String
 }
 
 struct Fleet: Codable {
     var shuttles: [SpaceShuttle]
-    var rockets: [Rocket]
 }
 
-let colombia = SpaceShuttle(name: "Colombia", designation: "OV-102")
-let challenger = SpaceShuttle(name: "Challenger", designation: "OV-099")
-let discovery = SpaceShuttle(name: "Discovery", designation: "OV-103")
-let atlantis = SpaceShuttle(name: "Atlantis", designation: "OV-104")
-let endeavour = SpaceShuttle(name: "Endeavour", designation: "OV-105")
-let enterprise = SpaceShuttle(name: "Enterprise", designation: "OV-101")
+let shuttles = [
+    SpaceShuttle(name: "Challenger", designation: "OV-099"),
+    SpaceShuttle(name: "Enterprise", designation: "OV-101"),
+    SpaceShuttle(name: "Colombia", designation: "OV-102"),
+    SpaceShuttle(name: "Discovery", designation: "OV-103"),
+    SpaceShuttle(name: "Atlantis", designation: "OV-104"),
+    SpaceShuttle(name: "Endeavour", designation: "OV-105")
+]
 
-let shuttles = [colombia, challenger, discovery, atlantis, endeavour]
-let nasaFleet = Fleet(shuttles: [], rockets: [])
+let nasaFleet = Fleet(shuttles: shuttles)
 
 let encoder = JSONEncoder()
-let encoded = try encoder.encode(nasaFleet)
+encoder.outputFormatting = .prettyPrinted
+var encoded: Data? = nil
+
+do {
+    encoded = try encoder.encode(nasaFleet)
+} catch {
+    print("Error encoding JSON: \(error)")
+}
+
+if let encodedJSON = encoded, let string = String(data: encodedJSON, encoding: .utf8) {
+    print(string)
+} else {
+    print("Improperly encoded JSON object, somehow!")
+}
+
+// non-automica synthesis of codable (DIY adherence)
 
 ///==============================================================
 /// PICK SOME ACTIVITIES
