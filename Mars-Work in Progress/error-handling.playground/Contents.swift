@@ -280,11 +280,128 @@ print(nasaFleet)
 let encoder = JSONEncoder()
 encoder.outputFormatting = .prettyPrinted
 
-let encoded = try! encoder.encode(nasaFleet)
+var encoded = try! encoder.encode(nasaFleet)
 print("\n====================\n SHUTTLES (ENCODED)\n====================")
 print(String(data: encoded, encoding: .utf8)!)
 
-/// non-automatic synthesis of codable (DIY adherence)
+
+// non-automatic synthesis of codable (DIY adherence)
+
+struct FlightLogEntry: Codable, CustomStringConvertible {
+    let date: Date
+    let craft: SpaceShuttle
+    let crew: Int
+    let duration: TimeInterval
+    let missionCode: String
+    let maidenVoyage: Bool
+    let landingSite: LandingSite
+    
+    private var dateString: String {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "MM/dd/yyyy"
+        return dateFormatter.string(from: self.date)
+    }
+    
+    private var durationHours: Int {
+        return Int(self.duration) / (60 * 60 * 100)
+    }
+    
+    var description: String {
+
+        return "\(self.dateString): \(self.craft) on mission \(self.missionCode) | crew: \(self.crew) | duration: \(self.durationHours / 24)d \(self.durationHours % 24)h | landed: \(self.landingSite.rawValue)" + (self.maidenVoyage ? " | MAIDEN VOYAGE" : "")
+    }
+    
+    enum LandingSite: String, Codable {
+        case edwards, kennedy, whitesands
+    }
+}
+
+// extension maintains automatic pairwise initialiser
+extension FlightLogEntry {
+    private enum CodingKeys: String, CodingKey {
+        case date, craft, crew, duration
+        case missionCode = "mission_code"
+        case maidenVoyage = "maiden_voyage"
+        case landingSite = "landing_site"
+    }
+    
+    init(from decoder: Decoder) throws {
+        do {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            
+            self.date = try container.decode(Date.self, forKey: .date)
+            self.craft = try container.decode(SpaceShuttle.self, forKey: .craft)
+            self.crew = try container.decode(Int.self, forKey: .crew)
+            self.duration = try container.decode(TimeInterval.self, forKey: .duration)
+            self.missionCode = try container.decode(String.self, forKey: .missionCode)
+            self.maidenVoyage = try container.decode(Bool.self, forKey: .maidenVoyage)
+            self.landingSite = try container.decode(LandingSite.self, forKey: .landingSite)
+        } catch {
+            throw error
+        }
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        do {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            
+            try container.encode(self.date, forKey: .date)
+            try container.encode(self.craft, forKey: .craft)
+            try container.encode(self.crew, forKey: .crew)
+            try container.encode(self.duration, forKey: .duration)
+            try container.encode(self.missionCode, forKey: .missionCode)
+            try container.encode(self.maidenVoyage, forKey: .maidenVoyage)
+            try container.encode(self.landingSite, forKey: .landingSite)
+        } catch {
+            throw error
+        }
+    }
+}
+
+// this is bad, don't do this (usually do the excessive checks, but since we know in this case because it's right up there 👆, it's okay)
+let challenger = nasaFleet.shuttles.filter({ $0.designation == "OV-099" })[0]
+let enterprise = nasaFleet.shuttles.filter({ $0.designation == "OV-101" })[0]
+let colombia = nasaFleet.shuttles.filter({ $0.designation == "OV-102" })[0]
+let discovery = nasaFleet.shuttles.filter({ $0.designation == "OV-103" })[0]
+let atlantis = nasaFleet.shuttles.filter({ $0.designation == "OV-104" })[0]
+let endeavour = nasaFleet.shuttles.filter({ $0.designation == "OV-105" })[0]
+
+extension Date {
+    static func makeFrom(m month: Int, d day: Int, y year: Int, _ hr: Int = 0, _ min: Int = 0, _ sec: Int = 0) -> Date {
+        let calendar = Calendar(identifier: .gregorian)
+        let components = DateComponents(year: year, month: month, day: day, hour: hr, minute: min, second: sec)
+        return calendar.date(from: components)!
+    }
+}
+
+extension TimeInterval {
+    static func makeFrom(d days: Int = 0, h hours: Int = 0, m min: Int = 0, s sec: Int = 0) -> TimeInterval {
+        let daysMs = days * 24 * 60 * 60 * 1000
+        let hoursMs = hours * 60 * 60 * 1000
+        let minutesMs = min * 60 * 1000
+        let secondsMs = sec * 1000
+        return TimeInterval(daysMs + hoursMs + minutesMs + secondsMs)
+    }
+}
+
+let log: [FlightLogEntry] = [
+    FlightLogEntry(date: Date.makeFrom(m: 08, d: 12, y: 1977), craft: enterprise, crew: 2, duration: TimeInterval.makeFrom(m: 5), missionCode: "ALT-12", maidenVoyage: true, landingSite: .edwards),
+    FlightLogEntry(date: Date.makeFrom(m: 04, d: 12, y: 1981), craft: colombia, crew: 2, duration: TimeInterval.makeFrom(d: 2, h: 6), missionCode: "STS-1", maidenVoyage: true, landingSite: .edwards),
+    FlightLogEntry(date: Date.makeFrom(m: 04, d: 04, y: 1982), craft: challenger, crew: 4, duration: TimeInterval.makeFrom(d: 5), missionCode: "STS-6", maidenVoyage: true, landingSite: .edwards),
+    FlightLogEntry(date: Date.makeFrom(m: 08, d: 30, y: 1984), craft: discovery, crew: 6, duration: TimeInterval.makeFrom(d: 6), missionCode: "STS-41-D", maidenVoyage: true, landingSite: .edwards),
+    FlightLogEntry(date: Date.makeFrom(m: 08, d: 27, y: 1985), craft: atlantis, crew: 5, duration: TimeInterval.makeFrom(d: 6, h: 1), missionCode: "STS-51-J", maidenVoyage: true, landingSite: .edwards),
+    FlightLogEntry(date: Date.makeFrom(m: 05, d:07, y: 1992), craft: endeavour, crew: 7, duration: TimeInterval.makeFrom(d: 8, h: 21), missionCode: "STS-49", maidenVoyage: true, landingSite: .edwards)
+]
+
+encoder.dateEncodingStrategy = .iso8601
+encoded = try! encoder.encode(log)
+print("\n====================\n FLIGHT LOG (ENCODED)\n====================")
+print(String(data: encoded, encoding: .utf8)!)
+
+decoder.dateDecodingStrategy = .iso8601
+var flightLog = try! decoder.decode([FlightLogEntry].self, from: encoded)
+print("\n====================\n FLIGHT LOG (DECODED)\n====================")
+print("Log of \(flightLog.count) flights:\n" + flightLog.list())
 
 ///==============================================================
 /// PICK SOME ACTIVITIES
