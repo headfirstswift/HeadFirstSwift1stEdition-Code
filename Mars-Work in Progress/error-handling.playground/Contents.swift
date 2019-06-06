@@ -74,14 +74,38 @@ let celestialBodies: [CelestialBody] = [theSun] + innerPlanets + [asteroidBelt] 
 
 /// if case let, guard let, for case let <===TODO===
 
+
 /// wildcards <===TODO===
 
-/// where (condition chaining) <===TODO===
-for body in celestialBodies where body is Spherical  {
-    
+
+// where (condition chaining)
+
+print("\n====================\n TERRAFORMING\n====================")
+
+// you could do it like this:
+for planet in planets { // iterates over whole list, just does nothing sometimes
+    if planet.type == .terran && !planet.habitable {
+        print("\(planet.name) may be suitable for terraforming!")
+    }
 }
 
-// ~= Expression Pattern is like "contains/isin" in the case of numbers
+// or you could do it like this:
+let nonHabitableTerranPlanets = planets.filter({ planet in planet.type == .terran && !planet.habitable })
+for planet in nonHabitableTerranPlanets {
+    print("\(planet.name) may be suitable for terraforming!")
+}
+
+// or even combine on one like to make a mess like this:
+for planet in planets.filter({ planet in planet.type == .terran && !planet.habitable }) {
+    print("\(planet.name) may be suitable for terraforming!")
+}
+
+// but this is easier (and possibly faster?)
+for planet in planets where planet.type == .terran && !planet.habitable  {
+    print("\(planet.name) may be suitable for terraforming!")
+}
+
+// ~= Expression Pattern is like "contains/is in" in the case of numbers
 // but means "matches pattern"
 print("\n====================\n MOONS\n====================")
 for planet in planets {
