@@ -1,10 +1,28 @@
 import Foundation
 
+// just doing it with a string?
+
 extension NSRegularExpression {
     func matches(in text: String) -> [NSTextCheckingResult] {
         return self.matches(in: text, range: NSRange(text.startIndex..., in: text))
     }
 }
+
+extension String {
+    func matches(regex pattern: String) throws -> [String] {
+        do {
+            let regex = try NSRegularExpression(pattern: pattern)
+            let matches = regex.matches(in: self)
+            return matches.map({ String(self[Range($0.range, in: self)!]) })
+        } catch {
+            throw error as Error
+        }
+    }
+}
+
+let letters = try? "Planet!".matches(regex: "[A-Za-z]") // cool!
+
+// what about a switch approach?
 
 struct RegEx: ExpressibleByStringLiteral {
     private let string: String
@@ -25,12 +43,11 @@ func ~= (pattern: RegEx, value: String) -> Bool {
     return false
 }
 
-let helloGreetings: RegEx = "(Hello|Hi|Howdy)"
-let goodbyeGreetings: RegEx = "(Goodbye|Bye|Ciao)"
+// it fiddly but still good!
 let greeting = "Bye"
 
 switch greeting {
-    case helloGreetings: print("Hello!")
-    case goodbyeGreetings: print("Goodbye!")
+    case RegEx("(Hello|Hi|Howdy)"): print("Hello!")
+    case RegEx("(Goodbye|Bye|Ciao)"): print("Goodbye!")
     default: print("Sorry, I didn't get that!")
 }

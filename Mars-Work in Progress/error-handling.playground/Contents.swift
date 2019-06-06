@@ -144,7 +144,7 @@ for body in celestialBodies {
 }
 
 // --------------------------------------------------------------
-// ⬇ This code is Error handling with optional chaining:
+/// ⬇ This code is Error handling with optional chaining:
 // --------------------------------------------------------------
 
 // --------------------------------------------------------------
@@ -152,28 +152,31 @@ for body in celestialBodies {
 // --------------------------------------------------------------
 let celestialBodiesThatAreSpherical = celestialBodies.filter({ $0 is Spherical }) // gets CelestialBodies that are Spherical
 
-print("\n====================\n SHUTTLES (DECODED)\n====================")
+print("\n====================\n VOLUME\n====================")
 for body in celestialBodiesThatAreSpherical {
     if let sphericalBody = body as? Spherical { // but then you have to do a cast
-        print("Volume of spherical body of radius \(sphericalBody.diameter) is \(sphericalBody.volume)")
+        print("Volume of spherical body of diameter \(sphericalBody.diameter)km is \(sphericalBody.volume)")
     }
 }
 
 let sphericalBodies = celestialBodies.compactMap({ $0 as? Spherical }) // gets CelestialBodies that are Spherical AS SPHERICAL TYPE
 
 for sphericalBody in sphericalBodies { // saves some iterations and is already the right type
-    print("Volume of spherical body of radius \(sphericalBody.diameter) is \(sphericalBody.volume)")
+    print("Volume of spherical body of diameter \(sphericalBody.diameter)km is \(sphericalBody.volume)")
 }
 
+// what if you want details across types?
 let namedMixedBodies = celestialBodies.map({ body in (name: body.name, volume: (body as? Spherical)?.volume) })
 
 for body in namedMixedBodies { // saves some iterations and is already the right type
     if let volume = body.volume {
         print("Volume of \(body.name) is \(volume)")
     } else {
-        print("Volume of \(body.name) is inestimable with given information")
+        print("Volume of \(body.name) is inestimable with given information!")
     }
 }
+
+// a little bit of other higher-order functions for later on
 
 extension Collection {
     func list() -> String {
@@ -185,8 +188,10 @@ extension Collection {
 }
 
 // --------------------------------------------------------------
-// ⬇ This code is Throwing and handling errors:
+/// ⬇ This code is Throwing and handling errors:
 // --------------------------------------------------------------
+
+
 
 // --------------------------------------------------------------
 // ⬇ This code is Encoding and decoding:
@@ -255,7 +260,7 @@ let encoded = try! encoder.encode(nasaFleet)
 print("\n====================\n SHUTTLES (ENCODED)\n====================")
 print(String(data: encoded, encoding: .utf8)!)
 
-// non-automatic synthesis of codable (DIY adherence)
+/// non-automatic synthesis of codable (DIY adherence)
 
 ///==============================================================
 /// PICK SOME ACTIVITIES
