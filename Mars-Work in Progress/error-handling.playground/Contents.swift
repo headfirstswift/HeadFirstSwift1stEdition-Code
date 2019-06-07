@@ -76,7 +76,9 @@ let celestialBodies: [CelestialBody] = [theSun] + innerPlanets + [asteroidBelt] 
 
 
 /// wildcards <===TODO===
-
+//if case (_,0,0) = coordinate {
+    // is on the x axis
+//}
 
 // where (condition chaining)
 
@@ -214,8 +216,6 @@ extension Collection {
 // --------------------------------------------------------------
 /// ⬇ This code is Throwing and handling errors:
 // --------------------------------------------------------------
-
-
 
 // --------------------------------------------------------------
 // ⬇ This code is Encoding and decoding:
